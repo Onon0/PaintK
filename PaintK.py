@@ -58,7 +58,7 @@ class MainWindow:
         self.addLayerModule(root)
         
     def AddLayer(self):
-        newLayer = Layer(self.width, self.height, 50)
+        newLayer = Layer(self.width, self.height, 0)
         
         Button(self.layerList, text = "Layer"+ str(newLayer.id), width= 20, command=lambda idx = newLayer.id: self.setLayer(idx)  ).grid(column=0,row= 200 - len(self.layers))
         Button(self.layerList, text = "B", width= 5, command=lambda idx = newLayer.id: self.toggleLayerVisibility(idx)).grid(column=1,row=200 - len(self.layers))
