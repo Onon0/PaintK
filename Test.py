@@ -1,28 +1,20 @@
-import numpy as np
-from Layer import Layer
-def test_overlay():
-    a = Layer(2,2)
-    b = Layer(2,2)
-    
-    a.content = np.array([
-        [ [1,10,100], [1,10,100] ],
-        [ [1,10,100], [1,10,100] ]
-        ])
+import pickle
+class Student:
+    def __init__(self, name, age, grade):
+        self.name = name
+        self.age = age
+        self.grade = grade # 0 - 100
+    def get_grade(self):
+        print (self.grade)
+s1 = Student("Tim", 19, 95)
 
-    b.content = np.array([
-        [ [1,10,100], [1,10,100] ],
-        [ [1,10,180], [1,10,120] ]
-        ])
-    
-    print(a.normal(b.content))
+#save it
+with open(f'test.pickle', 'wb') as file:
+    pickle.dump(s1, file) 
 
-def test():
-    large_array = np.ones((100, 100, 3))
-    vector = np.array([0.5, 1.2, 0.8])
+#load it
+with open(f'test.pickle', 'rb') as file2:
+    s1_new = pickle.load(file2)
 
-
-    result = np.multiply(large_array, vector)
-
-    print(f"Result shape: {result.shape}")
-    print(result)
-test()
+#check it
+s1_new.get_grade()
