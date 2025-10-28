@@ -23,6 +23,8 @@ class MainWindow:
 
         self.brush = Tools.Brush()
         self.layers = []
+        self.grid = Layer(self.width, self.height)
+        self.showGrid()
         self.currentLayerIndex = 0
         self.currentFrameIndex = 0
         
@@ -48,7 +50,7 @@ class MainWindow:
        
         self.display = self.base
 
-
+        
 
         img = Image.fromarray(self.base)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -71,6 +73,7 @@ class MainWindow:
         self.display = self.base
         for i in range(len(self.layers)):
             self.display = self.layers[i].find_frame(self.currentFrameIndex).normal(self.display)
+        self.display = self.grid.normal(self.display)
     def UpdateDisplay(self):
         img = Image.fromarray(self.display)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -79,8 +82,22 @@ class MainWindow:
         ret = self.base[x][y]
         for i in range(len(self.layers)):
             ret = self.layers[i].normal_pixel(ret, x, y)
+        
+        ret = self.grid.normal_pixel(ret,x,y)
         self.display[x][y] = ret
+        
+    def showGrid(self):
+        grid = 50
+    
+        for i in range(0, self.height, grid):
+            self.grid.frame_pointer.content[i][:] = [255,0,0]
+            self.grid.frame_pointer.alpha[i][:] = 255
+        
+        for i in range(0, self.width, grid):
+            self.grid.frame_pointer.content[:,i] = [255,0,0]
+            self.grid.frame_pointer.alpha[:,i] = 255
 
+        print(self.grid.frame_pointer.content.shape)
 
     def addLayerModule(self, root):
         self.layerModule = LayerModule(root, self)

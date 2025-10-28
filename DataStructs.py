@@ -1,7 +1,7 @@
 import numpy as np
 class Layer:
     id_offset = 1000
-    def __init__(self, width, height, alpha):
+    def __init__(self, width, height):
         Layer.id_offset += 1
         self.id = Layer.id_offset
         self.__frame_header = LinkedFrame(0, width=width, height=height)
@@ -22,6 +22,8 @@ class Layer:
         ret = self.frame_pointer.content[x][y] * self.frame_pointer.alpha[x][y] + base * (255 - self.frame_pointer.alpha[x][y])
         ret = ret/255
         return ret.astype(np.uint8)
+    def get_header(self):
+        return self.__frame_header
     def find_frame(self, f_id):
         temp = self.__frame_header
         while temp != None:
@@ -94,6 +96,9 @@ class LinkedFrame:
         
     def printInfo(self):
         print("--------id:" + str(self.__id))
+class LayerList:
+    def __init__(self):
+        layers = []
        
         
          

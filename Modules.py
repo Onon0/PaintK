@@ -28,6 +28,7 @@ class AnimationModule(tk.Frame):
     def startAnimationThread(self):
         
         if self.isPlaying:
+            print("stop animation called")
             self.stopAnimation()
         else:
             self.isPlaying = True
@@ -37,15 +38,22 @@ class AnimationModule(tk.Frame):
     def playAnimation(self):
         i = 0
         while self.isPlaying:
-            if i > 10:
-                i = 0
+            print("playing" + str(i))
+            
             self.LoadFrame(i)
             i+=1
+            if i > 10:
+                i = 0
 
             time.sleep(1/24)
+        print("Animation loop stopped")
+        
     def stopAnimation(self):
+        
+        print("loop set to false")
         self.isPlaying = False
-        self.anim_thread.join()
+        print("joining thread")
+        self.anim_thread.join(timeout=5)
         print("stopping animation")
 class ColorPalette(tk.Frame):
     def __init__(self, root,  **kwargs):
@@ -91,7 +99,7 @@ class LayerModule(tk.Frame):
         tk.Frame(self, bg="red", height=50).pack(side=tk.TOP)
         self.AddLayerBtn.place(relx=1.0, rely=1.0, anchor="se")
     def AddLayer(self):
-        newLayer = Layer(self.parent.width, self.parent.height, 0)
+        newLayer = Layer(self.parent.width, self.parent.height)
         
         tk.Button(self.layerList, text = "Layer"+ str(newLayer.id), width= 20, command=lambda idx = newLayer.id: self.setLayer(idx)  ).grid(column=0,row= 200 - len(self.parent.layers))
         tk.Button(self.layerList, text = "B", width= 5, command=lambda idx = newLayer.id: self.toggleLayerVisibility(idx)).grid(column=1,row=200 - len(self.parent.layers))
