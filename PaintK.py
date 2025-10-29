@@ -21,9 +21,10 @@ class MainWindow:
         self.BottomContainer = Frame(root)
         self.canvas = Canvas(self.MiddleContainer, bg="green", height=self.height, width=self.width)
 
-        self.brush = Tools.Brush()
+        self.brush = Tools.Brush(self)
         self.layers = []
         self.grid = Layer(self.width, self.height)
+        self.gridSize = 10
         self.showGrid()
         self.currentLayerIndex = 0
         self.currentFrameIndex = 0
@@ -71,8 +72,18 @@ class MainWindow:
     
     def UpdateLayers(self):
         self.display = self.base
+        
         for i in range(len(self.layers)):
-            self.display = self.layers[i].find_frame(self.currentFrameIndex).normal(self.display)
+            self.layers[i].find_frame(self.currentFrameIndex)
+        #---------onion skinning------------#
+        for i in range(len(self.layers)):
+            onion = self.layers[i].get_onion()
+            if onion != None:
+                self.display = onion.normal(self.display)
+        #---------onion skinning------------#
+
+        for i in range(len(self.layers)):
+            self.display = self.layers[i].frame_pointer.normal(self.display)
         self.display = self.grid.normal(self.display)
     def UpdateDisplay(self):
         img = Image.fromarray(self.display)
@@ -87,17 +98,16 @@ class MainWindow:
         self.display[x][y] = ret
         
     def showGrid(self):
-        grid = 50
-    
-        for i in range(0, self.height, grid):
+        
+        for i in range(0, self.height, self.gridSize):
             self.grid.frame_pointer.content[i][:] = [255,0,0]
             self.grid.frame_pointer.alpha[i][:] = 255
         
-        for i in range(0, self.width, grid):
+        for i in range(0, self.width, self.gridSize):
             self.grid.frame_pointer.content[:,i] = [255,0,0]
             self.grid.frame_pointer.alpha[:,i] = 255
 
-        print(self.grid.frame_pointer.content.shape)
+    
 
     def addLayerModule(self, root):
         self.layerModule = LayerModule(root, self)
@@ -119,12 +129,23 @@ class MainWindow:
             self.layers[self.currentLayerIndex].print_frame()
             self.UpdateLayers()
             self.UpdateDisplay()
-        area = self.brush.getBrushArea(event.x, event.y)
+        '''area = self.brush.getBrushArea(event.x, event.y)
         for i in range(len(area)):
             if (area[i][0] > 0 and area[i][0] < len(self.base[0])) and (area[i][1] > 0 and area[i][1] < len(self.base.data)):
                 self.layers[self.currentLayerIndex].frame_pointer.content[area[i][1]][area[i][0]] = self.ColorPickerModule.currentColor
                 self.layers[self.currentLayerIndex].frame_pointer.alpha[area[i][1]][area[i][0]] = 255
                 self.CalculatePixel(area[i][1], area[i][0])
+        '''
+        grid_area = self.brush.getGridArea(event.x, event.y)
+        self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
+        self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        
+        for i in range(self.gridSize):
+            for  j in range(self.gridSize):
+               
+                #self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1] + i][grid_area[0] + j] = self.ColorPickerModule.currentColor
+                #elf.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1] + i][grid_area[0] + j] = 255
+                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
         self.UpdateDisplay()
 
 

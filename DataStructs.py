@@ -4,13 +4,13 @@ class Layer:
     def __init__(self, width, height):
         Layer.id_offset += 1
         self.id = Layer.id_offset
-        self.__frame_header = LinkedFrame(0, width=width, height=height)
-        self.frame_pointer = self.__frame_header
-        #self.content = np.zeros((height, width, 3), dtype=np.float64)#todo : remove after frame implementation
-        #self.alpha = np.ones((height, width), dtype=np.float64) * alpha#todo : remove after frame implementation
         self.width = width
         self.height = height
         self.visible = True
+        self.__frame_header = LinkedFrame(0, owner_layer = self)
+        self.frame_pointer = self.__frame_header
+        
+        
         self.layer_method = 'normal'
     def normal(self, base):
         if not self.visible: return base
@@ -29,12 +29,19 @@ class Layer:
         while temp != None:
             if temp.getID() > f_id:
                 self.frame_pointer = temp.getPrev()
-                return self
+                return self.frame_pointer
             elif temp.getID() == f_id:
                 self.frame_pointer = temp
-                return self
+                return self.frame_pointer
             temp = temp.getNext()
         return self
+    def get_onion(self):
+        prev = self.frame_pointer.getPrev()
+        if prev == None:
+            return None
+        onion_frame = prev.copy()
+        onion_frame.alpha = onion_frame.alpha // 2
+        return onion_frame
     def frame_exist(self, f_id):
         temp = self.__frame_header
         while temp != None:
@@ -65,17 +72,18 @@ class Layer:
             temp = temp.getNext()
         print(ret)
 class LinkedFrame:
-    def __init__(self, id, width, height, prev = None):
+    
+    def __init__(self, id, owner_layer, prev = None):
+        self.owner = owner_layer
         self.__id = id#id is same as frame number
-        self.__width = width
-        self.__height = height
-        self.content = np.zeros((height, width, 3), dtype=np.float64)
-        self.alpha = np.zeros((height, width), dtype=np.float64)
+        
+        self.content = np.zeros((self.owner.height, self.owner.width, 3), dtype=np.float64)
+        self.alpha = np.zeros((self.owner.height, self.owner.width), dtype=np.float64)
         self.__prev = prev
         self.__next = None
     #create new frame and connect
     def addNextFrame(self, id):
-        newFrame = LinkedFrame(id, width= self.__width, height = self.__height, prev = self)
+        newFrame = LinkedFrame(id, owner_layer= self.owner, prev = self)
         if self.__next != None:
             newFrame.connectNextFrame(self.__next)
         self.__next = newFrame
@@ -93,9 +101,23 @@ class LinkedFrame:
         return self.__prev
     def setPrev(self, prev):
         self.__prev = prev
-        
+    def copy(self):
+        cp = LinkedFrame(self.__id, self.owner)
+        cp.content = self.content
+        cp.alpha = self.alpha
+        return cp    
     def printInfo(self):
         print("--------id:" + str(self.__id))
+    def normal(self, base):
+        if not self.owner.visible: return base
+        ret = self.content * self.alpha[:,:,np.newaxis] + base * (np.ones((self.owner.height, self.owner.width), dtype = np.float64)*255 -  self.alpha)[:,:,np.newaxis]
+        ret = ret / 255
+        return ret.astype(np.uint8)
+    def normal_pixel(self, base, x, y):
+        if not self.owner.visible: return base
+        ret = self.content[x][y] * self.alpha[x][y] + base * (255 - self.alpha[x][y])
+        ret = ret/255
+        return ret.astype(np.uint8)
 class LayerList:
     def __init__(self):
         layers = []

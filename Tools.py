@@ -1,6 +1,8 @@
 import math
+import numpy as np
 class Brush:
-    def __init__(self):
+    def __init__(self, parent):
+        self.parent = parent
         self.size = 10
     def getBrushArea(self, pos_x, pos_y):
         arr = []
@@ -11,3 +13,9 @@ class Brush:
                 if(dist <= self.size):
                     arr.append([i,j])
         return arr
+    def getGridArea(self, pos_x, pos_y):
+        arr = []
+        grid_x = pos_x // self.parent.gridSize
+        grid_y = pos_y // self.parent.gridSize
+        return (grid_x * self.parent.gridSize, grid_y * self.parent.gridSize)
+

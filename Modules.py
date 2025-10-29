@@ -92,7 +92,7 @@ class LayerModule(tk.Frame):
 
         
 
-        self.layerList = ctk.CTkScrollableFrame(self, width = 200, height= 30)
+        self.layerList = ctk.CTkScrollableFrame(self, width = 250, height= 30)
         self.AddLayerBtn = tk.Button(self, text="+", width= 3, height=3, command=self.AddLayer)
         
         self.layerList.pack(side=tk.TOP)
@@ -103,6 +103,8 @@ class LayerModule(tk.Frame):
         
         tk.Button(self.layerList, text = "Layer"+ str(newLayer.id), width= 20, command=lambda idx = newLayer.id: self.setLayer(idx)  ).grid(column=0,row= 200 - len(self.parent.layers))
         tk.Button(self.layerList, text = "B", width= 5, command=lambda idx = newLayer.id: self.toggleLayerVisibility(idx)).grid(column=1,row=200 - len(self.parent.layers))
+        tk.Button(self.layerList, text = "O", width= 5, command=lambda idx = newLayer.id: self.toggleOnionVisibility(idx)).grid(column=2,row=200 - len(self.parent.layers))
+        
         self.parent.layers.append(newLayer)
         self.parent.UpdateLayers()
         self.parent.UpdateDisplay()
@@ -121,5 +123,10 @@ class LayerModule(tk.Frame):
                 break
         self.parent.UpdateLayers()
         self.parent.UpdateDisplay()
+    def toggleOnionVisibility(self, index):
+        pass
 
-
+class CanvasModule(tk.Frame):
+    def __init__(self, root, parent,  **kwargs):
+        super().__init__(root, **kwargs)
+        self.parent = parent
