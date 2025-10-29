@@ -19,50 +19,29 @@ class MainWindow:
 
         self.MiddleContainer = Frame(root)
         self.BottomContainer = Frame(root)
-        self.canvas = Canvas(self.MiddleContainer, bg="green", height=self.height, width=self.width)
 
         self.brush = Tools.Brush(self)
         self.layers = []
-        self.grid = Layer(self.width, self.height)
-        self.gridSize = 10
-        self.showGrid()
         self.currentLayerIndex = 0
         self.currentFrameIndex = 0
+
+        ''' grid variables '''
+        self.grid = Layer(self.width, self.height)
+        self.gridSize = 10
+        self.bShowGrid = BooleanVar(value=False)
+        self.showGrid()
         
-        self.base = np.zeros((self.height, self.width, 3), dtype=np.uint8)
-        #draw transparent layer grid
-        grid = 10
-        for i in range(0,self.height, grid):
-            end_i = i+grid
-            
-            if end_i >= self.height: 
-                end_i = self.height -1
-            for j in range(0,self.width, grid):
-                end_j = j+grid
-                if end_j >= self.width: 
-                    end_j = self.width -1
-                    
-                
-                if ((i + j)//10)%2==0:
-                    self.base[i: end_i,j: end_j] = [255,255,255]
-                else:
-                    self.base[i: end_i,j: end_j] = [100,100,100]
-            
-       
-        self.display = self.base
+        
+        
 
         
-
-        img = Image.fromarray(self.base)
-        self.photo_img = ImageTk.PhotoImage(image=img)
-        self.image_element = self.canvas.create_image(1,1,image=self.photo_img, anchor="nw")
-        
-        self.canvas.bind("<B1-Motion>", self.paint)
         self.FileMenuModule = FileMenu(root, self)
+        
         
         self.addColorPickerModule(self.MiddleContainer)
         
-        self.canvas.pack(side=LEFT)
+        
+        self.addCanvasModule()
 
         self.addLayerModule(self.MiddleContainer)
         self.addAnimationModule(self.BottomContainer)
@@ -84,7 +63,8 @@ class MainWindow:
 
         for i in range(len(self.layers)):
             self.display = self.layers[i].frame_pointer.normal(self.display)
-        self.display = self.grid.normal(self.display)
+        if self.bShowGrid.get():
+            self.display = self.grid.normal(self.display)
     def UpdateDisplay(self):
         img = Image.fromarray(self.display)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -94,7 +74,8 @@ class MainWindow:
         for i in range(len(self.layers)):
             ret = self.layers[i].normal_pixel(ret, x, y)
         
-        ret = self.grid.normal_pixel(ret,x,y)
+        if self.bShowGrid.get():
+            ret = self.grid.normal_pixel(ret,x,y)
         self.display[x][y] = ret
         
     def showGrid(self):
@@ -107,7 +88,44 @@ class MainWindow:
             self.grid.frame_pointer.content[:,i] = [255,0,0]
             self.grid.frame_pointer.alpha[:,i] = 255
 
-    
+    def toggleGrid(self):
+        print("Toggle Grid:" + str(self.bShowGrid.get()))
+        self.UpdateLayers()
+        self.UpdateDisplay()
+    def addCanvasModule(self):
+        self.canvasModule = Frame(self.MiddleContainer, width=self.width)
+        self.canvas = Canvas(self.canvasModule, height=self.height, width=self.width)
+        self.gridToggle = Checkbutton(self.canvasModule, text = "show grid", variable=self.bShowGrid, onvalue=True, offvalue=False, command=self.toggleGrid)
+        self.base = np.zeros((self.height, self.width, 3), dtype=np.uint8)
+        '''draw transparent layer grid '''
+        base_grid = 10
+        for i in range(0,self.height, base_grid):
+            end_i = i+base_grid
+            
+            if end_i >= self.height: 
+                end_i = self.height -1
+            for j in range(0,self.width, base_grid):
+                end_j = j+base_grid
+                if end_j >= self.width: 
+                    end_j = self.width -1
+                    
+                
+                if ((i + j)//10)%2==0:
+                    self.base[i: end_i,j: end_j] = [255,255,255]
+                else:
+                    self.base[i: end_i,j: end_j] = [100,100,100]
+        '''draw transparent layer grid '''
+       
+        self.display = self.base
+        img = Image.fromarray(self.base)
+        self.photo_img = ImageTk.PhotoImage(image=img)
+        self.image_element = self.canvas.create_image(1,1,image=self.photo_img, anchor="nw")
+        
+        self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.pack(side=TOP)
+        self.gridToggle.pack(side=TOP)
+        self.canvasModule.pack(side=LEFT)
+        
 
     def addLayerModule(self, root):
         self.layerModule = LayerModule(root, self)
@@ -143,8 +161,6 @@ class MainWindow:
         for i in range(self.gridSize):
             for  j in range(self.gridSize):
                
-                #self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1] + i][grid_area[0] + j] = self.ColorPickerModule.currentColor
-                #elf.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1] + i][grid_area[0] + j] = 255
                 self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
         self.UpdateDisplay()
 

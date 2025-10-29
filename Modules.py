@@ -101,16 +101,19 @@ class LayerModule(tk.Frame):
     def AddLayer(self):
         newLayer = Layer(self.parent.width, self.parent.height)
         
-        tk.Button(self.layerList, text = "Layer"+ str(newLayer.id), width= 20, command=lambda idx = newLayer.id: self.setLayer(idx)  ).grid(column=0,row= 200 - len(self.parent.layers))
-        tk.Button(self.layerList, text = "B", width= 5, command=lambda idx = newLayer.id: self.toggleLayerVisibility(idx)).grid(column=1,row=200 - len(self.parent.layers))
-        tk.Button(self.layerList, text = "O", width= 5, command=lambda idx = newLayer.id: self.toggleOnionVisibility(idx)).grid(column=2,row=200 - len(self.parent.layers))
-        
+        LayerItem(self.layerList, newLayer.id, self).pack(side=tk.BOTTOM)
         self.parent.layers.append(newLayer)
         self.parent.UpdateLayers()
         self.parent.UpdateDisplay()
     
     def setLayer(self, index):
         
+        print("selected" + str(index))
+        for child_name, child in self.layerList.children.items():
+            if child.id == index:
+                child.setColor("green")
+            else:
+                child.setColor("red")
         for i in range(len(self.parent.layers)):
             if(self.parent.layers[i].id == index):
                 self.parent.currentLayerIndex = i
@@ -126,7 +129,44 @@ class LayerModule(tk.Frame):
     def toggleOnionVisibility(self, index):
         pass
 
-class CanvasModule(tk.Frame):
-    def __init__(self, root, parent,  **kwargs):
+    def removeLayer(self, index):
+        
+        for i in range(len(self.parent.layers)):
+            if(self.parent.layers[i].id == index):
+                del self.parent.layers[i]
+                if(i == self.parent.currentLayerIndex):
+                    self.parent.currentLayerIndex = 0
+                break
+
+
+class LayerItem(tk.Frame):
+    def __init__(self, root, id, parent, **kwargs):
         super().__init__(root, **kwargs)
         self.parent = parent
+        self.id = id
+        self.LayerButton = tk.Button(self, text = "Layer"+ str(self.id), width= 20, bg="red" )
+        self.LayerButton.config(command=lambda idx = self.id: self.selectLayer(idx) )
+        self.LayerButton.grid(column=0, row=0)
+        tk.Button(self, text = "B", width= 5, command=lambda idx = self.id: self.parent.toggleLayerVisibility(idx)).grid(column=1, row=0)
+        tk.Button(self, text = "O", width= 5, command=lambda idx = self.id: self.parent.toggleOnionVisibility(idx)).grid(column=2, row=0)
+        
+        self.contextMenu = tk.Menu(self.LayerButton, tearoff=0)
+        self.contextMenu.add_command(label="delete layer", command=self.deleteLayer)
+        self.contextMenu.add_command(label="move up")
+        self.contextMenu.add_command(label="move down")
+        
+        self.LayerButton.bind("<Button-3>", self.show_context_menu)
+    def setColor(self, color):
+        self.LayerButton.config(bg=color)
+    def selectLayer(self, _id):
+        
+        
+        self.parent.setLayer(_id)
+    def deleteLayer(self):
+        self.parent.removeLayer(self.id)
+        self.pack_forget()
+    def show_context_menu(self, event):
+        try:
+            self.contextMenu.tk_popup(event.x_root, event.y_root)
+        finally:
+            self.contextMenu.grab_release() # Release the grab when an item is selected
