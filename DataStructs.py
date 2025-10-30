@@ -4,6 +4,7 @@ class Layer:
     def __init__(self, width, height):
         Layer.id_offset += 1
         self.id = Layer.id_offset
+        self.name = "Layer" + str(self.id)
         self.width = width
         self.height = height
         self.visible = True

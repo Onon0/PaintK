@@ -13,6 +13,7 @@ class MainWindow:
 
         self.width = width
         self.height = height
+        self.root = root
         root.title("PaintK")
         # Set geometry (widthxheight)
         root.geometry('1000x500')
@@ -70,6 +71,10 @@ class MainWindow:
         self.photo_img = ImageTk.PhotoImage(image=img)
         self.canvas.itemconfig(self.image_element, image = self.photo_img)
     def CalculatePixel(self, x, y):
+        if x <= 0 or x >= self.height:
+            return
+        if y <=0 or y >= self.width:
+            return 
         ret = self.base[x][y]
         for i in range(len(self.layers)):
             ret = self.layers[i].normal_pixel(ret, x, y)
@@ -89,7 +94,6 @@ class MainWindow:
             self.grid.frame_pointer.alpha[:,i] = 255
 
     def toggleGrid(self):
-        print("Toggle Grid:" + str(self.bShowGrid.get()))
         self.UpdateLayers()
         self.UpdateDisplay()
     def addCanvasModule(self):

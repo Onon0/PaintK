@@ -101,8 +101,9 @@ class LayerModule(tk.Frame):
     def AddLayer(self):
         newLayer = Layer(self.parent.width, self.parent.height)
         
-        LayerItem(self.layerList, newLayer.id, self).pack(side=tk.BOTTOM)
+        LayerItem(self.layerList, newLayer, self).pack(side=tk.BOTTOM)
         self.parent.layers.append(newLayer)
+        if len(self.parent.layers) == 1: self.setLayer(self.parent.layers[0].id)
         self.parent.UpdateLayers()
         self.parent.UpdateDisplay()
     
@@ -110,7 +111,7 @@ class LayerModule(tk.Frame):
         
         print("selected" + str(index))
         for child_name, child in self.layerList.children.items():
-            if child.id == index:
+            if child.layer.id == index:
                 child.setColor("green")
             else:
                 child.setColor("red")
@@ -134,37 +135,73 @@ class LayerModule(tk.Frame):
         for i in range(len(self.parent.layers)):
             if(self.parent.layers[i].id == index):
                 del self.parent.layers[i]
-                if(i == self.parent.currentLayerIndex):
-                    self.parent.currentLayerIndex = 0
+                if len(self.parent.layers) > 0 : 
+                    self.setLayer(self.parent.layers[0].id)
+                self.parent.UpdateLayers()
+                self.parent.UpdateDisplay()
                 break
-
-
+    
+    def moveUp(self, index):
+        for i in range(len(self.parent.layers)):
+            if(self.parent.layers[i].id == index):
+                if i+1 >= len(self.parent.layers):
+                    return
+                temp = self.parent.layers[i]
+                self.parent.layers[i] = self.parent.layers[i + 1]
+                self.parent.layers[i + 1] = temp
+                self.parent.UpdateLayers()
+                self.parent.UpdateDisplay()
+                self.refreshLayerItems()
+                return
+    def moveDown(self, index):
+        for i in range(len(self.parent.layers)):
+            if(self.parent.layers[i].id == index):
+                if i == 0:
+                    return
+                temp = self.parent.layers[i]
+                self.parent.layers[i] = self.parent.layers[i - 1]
+                self.parent.layers[i - 1] = temp
+                self.parent.UpdateLayers()
+                self.parent.UpdateDisplay()
+                self.refreshLayerItems()
+                return
+    def refreshLayerItems(self):
+        for widget in self.layerList.winfo_children():
+            widget.destroy()
+        for l in self.parent.layers:
+            LayerItem(self.layerList, l, self).pack(side=tk.BOTTOM)
+        if len(self.parent.layers) > 0 :
+            self.setLayer(self.parent.layers[0].id)
 class LayerItem(tk.Frame):
-    def __init__(self, root, id, parent, **kwargs):
+    def __init__(self, root, layer, parent, **kwargs):
         super().__init__(root, **kwargs)
         self.parent = parent
-        self.id = id
-        self.LayerButton = tk.Button(self, text = "Layer"+ str(self.id), width= 20, bg="red" )
-        self.LayerButton.config(command=lambda idx = self.id: self.selectLayer(idx) )
+        self.layer = layer
+        self.LayerButton = tk.Button(self, text = self.layer.name, width= 20, bg="red" )
+        self.LayerButton.config(command=lambda idx = self.layer.id: self.selectLayer(idx) )
         self.LayerButton.grid(column=0, row=0)
-        tk.Button(self, text = "B", width= 5, command=lambda idx = self.id: self.parent.toggleLayerVisibility(idx)).grid(column=1, row=0)
-        tk.Button(self, text = "O", width= 5, command=lambda idx = self.id: self.parent.toggleOnionVisibility(idx)).grid(column=2, row=0)
+        tk.Button(self, text = "B", width= 5, command=lambda idx = self.layer.id: self.parent.toggleLayerVisibility(idx)).grid(column=1, row=0)
+        tk.Button(self, text = "O", width= 5, command=lambda idx = self.layer.id: self.parent.toggleOnionVisibility(idx)).grid(column=2, row=0)
         
         self.contextMenu = tk.Menu(self.LayerButton, tearoff=0)
         self.contextMenu.add_command(label="delete layer", command=self.deleteLayer)
-        self.contextMenu.add_command(label="move up")
-        self.contextMenu.add_command(label="move down")
+        self.contextMenu.add_command(label="move up", command=self.move_up)
+        self.contextMenu.add_command(label="move down", command=self.move_down)
         
         self.LayerButton.bind("<Button-3>", self.show_context_menu)
     def setColor(self, color):
         self.LayerButton.config(bg=color)
+    
     def selectLayer(self, _id):
-        
-        
         self.parent.setLayer(_id)
+
     def deleteLayer(self):
-        self.parent.removeLayer(self.id)
+        self.parent.removeLayer(self.layer.id)
         self.pack_forget()
+    def move_up(self):
+        self.parent.moveUp(self.layer.id)
+    def move_down(self):
+        self.parent.moveDown(self.layer.id)
     def show_context_menu(self, event):
         try:
             self.contextMenu.tk_popup(event.x_root, event.y_root)

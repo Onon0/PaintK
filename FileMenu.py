@@ -12,23 +12,40 @@ class FileMenu():
         self.file_btn["menu"] = self.file_btn.menu
 
         self.file_btn.menu.add_command(label="New Project")
-        self.file_btn.menu.add_command(label="Open", command=self.load)         
+        self.file_btn.menu.add_command(label="Open", command=self.open_file)         
         self.file_btn.menu.add_command(label="Save", command=self.save)
-        self.file_btn.menu.add_command(label="Exit")
+        self.file_btn.menu.add_command(label="Exit", command=self.on_close)
     def save(self):
-        """save class as self.name.txt"""
-        file = open('save.ptky','wb')
-        ll = LayerList()
-        ll.layers = self.parent.layers.copy()
-        file.write(pickle.dumps(ll))
-        file.close()
+        filepath = tk.filedialog.asksaveasfilename(
+            title="Select a file",
+            initialdir="/",  # Start in the root directory
+            defaultextension=".ptky",
+            filetypes=[("paintk file", "*.ptky")]
+        )
+        if filepath:
+            print(filepath)
+            file = open(filepath,'wb')
+            ll = LayerList()
+            ll.layers = self.parent.layers.copy()
+            file.write(pickle.dumps(ll))
+            file.close()
 
-    def load(self):
-        """try load self.name.txt"""
-        file = open('save.ptky','rb')
-        dataPickle = file.read()
-        file.close()
-        ll = pickle.loads(dataPickle)
-        self.parent.layers = ll.layers
-        self.parent.UpdateLayers()
-        self.parent.UpdateDisplay()
+    
+    def open_file(self):
+        filepath = tk.filedialog.askopenfilename(
+            title="Select a file",
+            initialdir="/",  # Start in the root directory
+            filetypes=[("Text files", "*.ptky"), ("All files", "*.*")]
+        )
+        if filepath:
+            file = open(filepath,'rb')
+            dataPickle = file.read()
+            file.close()
+            ll = pickle.loads(dataPickle)
+            self.parent.layers = ll.layers
+            self.parent.UpdateLayers()
+            self.parent.UpdateDisplay()
+            self.parent.layerModule.refreshLayerItems()
+    def on_close(self):
+        if tk.messagebox.askokcancel("Quit", "Do you want to quit?"):
+            self.parent.root.destroy()
