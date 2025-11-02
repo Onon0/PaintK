@@ -119,9 +119,15 @@ class LinkedFrame:
         ret = self.content[x][y] * self.alpha[x][y] + base * (255 - self.alpha[x][y])
         ret = ret/255
         return ret.astype(np.uint8)
-class LayerList:
-    def __init__(self):
-        layers = []
+class ProjectSettings:
+    def __init__(self, _name, width, height):
+        self.project_name = _name
+        self.width = width
+        self.height = height
+        
+        self.layers = []
+    def __str__(self):
+        return f"{self.project_name}: width:{self.width}, height:{self.height}"
        
         
          

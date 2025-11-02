@@ -100,7 +100,7 @@ class LayerModule(tk.Frame):
         self.AddLayerBtn.place(relx=1.0, rely=1.0, anchor="se")
     def AddLayer(self):
         newLayer = Layer(self.parent.width, self.parent.height)
-        
+        print(f"width: {self.parent.width} height: {self.parent.height}")
         LayerItem(self.layerList, newLayer, self).pack(side=tk.BOTTOM)
         self.parent.layers.append(newLayer)
         if len(self.parent.layers) == 1: self.setLayer(self.parent.layers[0].id)

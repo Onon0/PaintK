@@ -100,6 +100,17 @@ class MainWindow:
         self.canvasModule = Frame(self.MiddleContainer, width=self.width)
         self.canvas = Canvas(self.canvasModule, height=self.height, width=self.width)
         self.gridToggle = Checkbutton(self.canvasModule, text = "show grid", variable=self.bShowGrid, onvalue=True, offvalue=False, command=self.toggleGrid)
+        self.create_base()
+        img = Image.fromarray(self.base)
+        self.photo_img = ImageTk.PhotoImage(image=img)
+        self.image_element = self.canvas.create_image(1,1,image=self.photo_img, anchor="nw")
+        
+        self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.pack(side=TOP)
+        self.gridToggle.pack(side=TOP)
+        self.canvasModule.pack(side=LEFT)
+
+    def create_base(self):
         self.base = np.zeros((self.height, self.width, 3), dtype=np.uint8)
         '''draw transparent layer grid '''
         base_grid = 10
@@ -121,14 +132,6 @@ class MainWindow:
         '''draw transparent layer grid '''
        
         self.display = self.base
-        img = Image.fromarray(self.base)
-        self.photo_img = ImageTk.PhotoImage(image=img)
-        self.image_element = self.canvas.create_image(1,1,image=self.photo_img, anchor="nw")
-        
-        self.canvas.bind("<B1-Motion>", self.paint)
-        self.canvas.pack(side=TOP)
-        self.gridToggle.pack(side=TOP)
-        self.canvasModule.pack(side=LEFT)
         
 
     def addLayerModule(self, root):
@@ -143,6 +146,13 @@ class MainWindow:
     def addAnimationModule(self, root):
         self.AnimationModule = AnimationModule(root, self,width= 1000)
         self.AnimationModule.pack(side=LEFT)
+    def reset_program(self, new_settings):
+        self.layers = []
+        self.width = new_settings.width
+        self.height = new_settings.height
+        self.canvas.configure(width=self.width, height=self.height)
+        self.create_base()
+
     def paint(self, event):
         if len(self.layers) == 0: return
         if not self.layers[self.currentLayerIndex].frame_exist(self.currentFrameIndex):
