@@ -6,7 +6,7 @@ import numpy as np
 import Tools
 from DataStructs import Layer
 from FileMenu import FileMenu
-from Modules import ColorPalette, AnimationModule, LayerModule
+from Modules import ColorPalette, AnimationModule, LayerModule, ToolsModule
 
 class MainWindow:
     def __init__(self, root, width, height):
@@ -14,14 +14,15 @@ class MainWindow:
         self.width = width
         self.height = height
         self.root = root
-        root.title("PaintK")
+        
+        root.title("untitled")
         # Set geometry (widthxheight)
         root.geometry('1000x500')
 
         self.MiddleContainer = Frame(root)
         self.BottomContainer = Frame(root)
 
-        self.brush = Tools.Brush(self)
+        self.tool = Tools.Brush(self)
         self.layers = []
         self.currentLayerIndex = 0
         self.currentFrameIndex = 0
@@ -38,7 +39,7 @@ class MainWindow:
         
         self.FileMenuModule = FileMenu(root, self)
         
-        
+        self.addToolsModule(root)
         self.addColorPickerModule(self.MiddleContainer)
         
         
@@ -146,12 +147,22 @@ class MainWindow:
     def addAnimationModule(self, root):
         self.AnimationModule = AnimationModule(root, self,width= 1000)
         self.AnimationModule.pack(side=LEFT)
+    
+    def addToolsModule(self, root):
+        self.ToolsModule = ToolsModule(root, self, width = 15, height = 5)
+        self.ToolsModule.pack(side=TOP)
     def reset_program(self, new_settings):
-        self.layers = []
         self.width = new_settings.width
         self.height = new_settings.height
+        self.root.title(new_settings.project_name)
         self.canvas.configure(width=self.width, height=self.height)
+        self.grid = Layer(self.width, self.height)
+        self.layers = new_settings.layers
         self.create_base()
+        self.UpdateLayers()
+        self.UpdateDisplay()
+        self.layerModule.refreshLayerItems()
+        
 
     def paint(self, event):
         if len(self.layers) == 0: return
@@ -161,22 +172,8 @@ class MainWindow:
             self.layers[self.currentLayerIndex].print_frame()
             self.UpdateLayers()
             self.UpdateDisplay()
-        '''area = self.brush.getBrushArea(event.x, event.y)
-        for i in range(len(area)):
-            if (area[i][0] > 0 and area[i][0] < len(self.base[0])) and (area[i][1] > 0 and area[i][1] < len(self.base.data)):
-                self.layers[self.currentLayerIndex].frame_pointer.content[area[i][1]][area[i][0]] = self.ColorPickerModule.currentColor
-                self.layers[self.currentLayerIndex].frame_pointer.alpha[area[i][1]][area[i][0]] = 255
-                self.CalculatePixel(area[i][1], area[i][0])
-        '''
-        grid_area = self.brush.getGridArea(event.x, event.y)
-        self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
-        self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
         
-        for i in range(self.gridSize):
-            for  j in range(self.gridSize):
-               
-                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
-        self.UpdateDisplay()
+        self.tool.execute(event=event)
 
 
 root = Tk()

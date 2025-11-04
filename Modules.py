@@ -1,11 +1,12 @@
 import tkinter as tk
+from tkinter.ttk import *
 import customtkinter as ctk
 from PIL import Image, ImageTk
 import numpy as np
 import time
 import threading
 from DataStructs import Layer
-
+from Tools import *
 class AnimationModule(tk.Frame):
     def __init__(self, root, parent,  **kwargs):
         super().__init__(root, **kwargs)
@@ -112,9 +113,9 @@ class LayerModule(tk.Frame):
         print("selected" + str(index))
         for child_name, child in self.layerList.children.items():
             if child.layer.id == index:
-                child.setColor("green")
+                child.setRelief(tk.SUNKEN)
             else:
-                child.setColor("red")
+                child.setRelief(tk.RAISED)
         for i in range(len(self.parent.layers)):
             if(self.parent.layers[i].id == index):
                 self.parent.currentLayerIndex = i
@@ -177,7 +178,7 @@ class LayerItem(tk.Frame):
         super().__init__(root, **kwargs)
         self.parent = parent
         self.layer = layer
-        self.LayerButton = tk.Button(self, text = self.layer.name, width= 20, bg="red" )
+        self.LayerButton = tk.Button(self, text = self.layer.name, width= 20, relief=tk.RAISED )
         self.LayerButton.config(command=lambda idx = self.layer.id: self.selectLayer(idx) )
         self.LayerButton.grid(column=0, row=0)
         tk.Button(self, text = "B", width= 5, command=lambda idx = self.layer.id: self.parent.toggleLayerVisibility(idx)).grid(column=1, row=0)
@@ -189,8 +190,8 @@ class LayerItem(tk.Frame):
         self.contextMenu.add_command(label="move down", command=self.move_down)
         
         self.LayerButton.bind("<Button-3>", self.show_context_menu)
-    def setColor(self, color):
-        self.LayerButton.config(bg=color)
+    def setRelief(self, relief):
+        self.LayerButton.config(relief=relief)
     
     def selectLayer(self, _id):
         self.parent.setLayer(_id)
@@ -207,3 +208,26 @@ class LayerItem(tk.Frame):
             self.contextMenu.tk_popup(event.x_root, event.y_root)
         finally:
             self.contextMenu.grab_release() # Release the grab when an item is selected
+
+class ToolsModule(tk.Frame):
+    def __init__(self, root, parent,  **kwargs):
+        super().__init__(root, **kwargs)
+        self.parent = parent
+        
+        
+
+        # Convert to Tkinter PhotoImage
+        self.brush_icon = tk.PhotoImage(file = r'icon.png')
+
+        self.brush_btn = tk.Button(self, image= self.brush_icon , width=50, height=50, command=self.setBrush)
+        self.brush_btn.grid(column=0, row=0)
+
+        self.eraser_btn = tk.Button(self, width=5, height=5, command=self.setEraser)
+        self.eraser_btn.grid(column=1, row=0)
+
+        self.circle_btn = tk.Button(self, width=5, height=5)
+        self.circle_btn.grid(column=2, row=0)
+    def setBrush(self):
+        self.parent.tool = Brush(self.parent)
+    def setEraser(self):
+        self.parent.tool = Eraser(self.parent)
