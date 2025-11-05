@@ -17,7 +17,7 @@ class MainWindow:
         
         root.title("untitled")
         # Set geometry (widthxheight)
-        root.geometry('1000x500')
+        root.geometry('1000x600')
 
         self.MiddleContainer = Frame(root)
         self.BottomContainer = Frame(root)

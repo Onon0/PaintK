@@ -16,7 +16,7 @@ class FileMenu():
         self.file_btn.menu.add_command(label="New Project", command=self.new_project)
         self.file_btn.menu.add_command(label="Open", command=self.open_file)         
         self.file_btn.menu.add_command(label="Save", command=self.save)
-        self.file_btn.menu.add_command(label="Export", command=self.export)
+        self.file_btn.menu.add_command(label="Export", command=self.export_window)
         self.file_btn.menu.add_command(label="Exit", command=self.on_close)
 
         self.name = "untitled"
@@ -62,25 +62,41 @@ class FileMenu():
         new_project_settings = ProjectSettings(_name = self.name_variable.get(), width= self.width_variable.get(), height=self.height_variable.get())
         self.parent.reset_program(new_project_settings)
         self.new_project_window.destroy()
-    
-    def export(self):
+    def export_window(self):
+        filepath = tk.filedialog.asksaveasfilename(
+            title="Select a file",
+            initialdir="/",  # Start in the root directory
+            defaultextension=".png",
+            filetypes=[("png", "*.png"), ("jpeg, jpg", "*.jpg")]
+        )
+        if filepath:
+            self.export(filepath)
+    def export(self, filepath):
         display = self.parent.layers[0].frame_pointer.content
         alpha = self.parent.layers[0].frame_pointer.alpha
         for i in range(1,len(self.parent.layers)):
-            display = self.parent.layers[i].frame_pointer.normal(display)
-            alpha = alpha + self.parent.layers[i].frame_pointer.alpha
-        print(display.shape)
-        print(alpha.shape)
+            if self.parent.layers[i].visible:
+                display = self.parent.layers[i].frame_pointer.normal(display)
+                alpha = alpha + self.parent.layers[i].frame_pointer.alpha
+        
         alpha = np.clip(alpha, 0, 255)
         alpha = alpha.astype(np.uint8)
         result = np.dstack([display, alpha[:, :, np.newaxis]])
-        result = result.reshape(self.parent.width, self.parent.height, 4)
-        print(result.shape)
-        #result = np.random.randint(0, 255, (256, 256, 4), dtype=np.uint8)
+        result = result.reshape(self.parent.height, self.parent.width, 4)
+        result = result.astype(np.uint8)
+        #print(result.shape)
+        
         final_image = Image.fromarray(result, 'RGBA')
-        final_image.save('export.png')
+        final_image.save(filepath)
 
     def save(self):
+        if self.project_path != "":
+            file = open(self.project_path,'wb')
+            ps = ProjectSettings(_name = self.name ,width=self.parent.width, height = self.parent.height)
+            ps.layers = self.parent.layers.copy()
+            file.write(pickle.dumps(ps))
+            file.close()
+            return
         filepath = tk.filedialog.asksaveasfilename(
             title="Select a file",
             initialdir="/",  # Start in the root directory
@@ -103,6 +119,8 @@ class FileMenu():
             filetypes=[("Text files", "*.ptky"), ("All files", "*.*")]
         )
         if filepath:
+            self.project_path = filepath
+            print(self.project_path)
             file = open(filepath,'rb')
             dataPickle = file.read()
             file.close()

@@ -8,6 +8,7 @@ class Layer:
         self.width = width
         self.height = height
         self.visible = True
+        self.onion_visible = True
         self.__frame_header = LinkedFrame(0, owner_layer = self)
         self.frame_pointer = self.__frame_header
         
@@ -37,6 +38,8 @@ class Layer:
             temp = temp.getNext()
         return self
     def get_onion(self):
+        if not self.onion_visible:
+            return None
         prev = self.frame_pointer.getPrev()
         if prev == None:
             return None
