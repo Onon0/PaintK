@@ -107,6 +107,8 @@ class MainWindow:
         self.image_element = self.canvas.create_image(1,1,image=self.photo_img, anchor="nw")
         
         self.canvas.bind("<B1-Motion>", self.paint)
+        self.canvas.bind("<Button-1>", self.mouse_drag_start)
+        self.canvas.bind("<ButtonRelease-1>", self.mouse_drag_end)
         self.canvas.pack(side=TOP)
         self.gridToggle.pack(side=TOP)
         self.canvasModule.pack(side=LEFT)
@@ -163,7 +165,21 @@ class MainWindow:
         self.UpdateDisplay()
         self.layerModule.refreshLayerItems()
         
+    def setPixel(self, x, y):
+        self.layers[self.currentLayerIndex].frame_pointer.content[y][x] = self.ColorPickerModule.currentColor
+        self.layers[self.currentLayerIndex].frame_pointer.alpha[y][x] = 255
+        self.CalculatePixel(y,x)
+    def setGridPixel(self, x, y):
+        grid_x = x // self.gridSize
+        grid_y = y // self.gridSize
+        grid_area = (grid_x * self.gridSize, grid_y * self.gridSize)
 
+        self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
+        self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        for i in range(self.gridSize):
+            for  j in range(self.gridSize):
+                
+                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
     def paint(self, event):
         if len(self.layers) == 0: return
         if not self.layers[self.currentLayerIndex].frame_exist(self.currentFrameIndex):
@@ -174,6 +190,29 @@ class MainWindow:
             self.UpdateDisplay()
         
         self.tool.execute(event=event)
+    
+    def mouse_drag_start(self, event):
+        if len(self.layers) == 0: return
+        if not self.layers[self.currentLayerIndex].frame_exist(self.currentFrameIndex):
+            
+            self.layers[self.currentLayerIndex].add_frame_at(self.currentFrameIndex)
+            self.layers[self.currentLayerIndex].print_frame()
+            self.UpdateLayers()
+            self.UpdateDisplay()
+        
+        self.tool.drag_start(event=event)
+    
+    def mouse_drag_end(self, event):
+        if len(self.layers) == 0: return
+        if not self.layers[self.currentLayerIndex].frame_exist(self.currentFrameIndex):
+            
+            self.layers[self.currentLayerIndex].add_frame_at(self.currentFrameIndex)
+            self.layers[self.currentLayerIndex].print_frame()
+            self.UpdateLayers()
+            self.UpdateDisplay()
+        
+        self.tool.drag_end(event=event)
+
 
 
 root = Tk()

@@ -259,7 +259,7 @@ class ToolsModule(tk.Frame):
         # Convert to Tkinter PhotoImage
         self.brush_btn = self.addToolButton(self.setBrush, is_default=True)
         self.eraser_btn =self.addToolButton(self.setEraser, grid_at=(1,0))
-        
+        self.line_btn = self.addToolButton(self.setLine, grid_at=(2,0))
 
     def addToolButton(self,command, grid_at = (0,0), is_default =False):
         
@@ -281,3 +281,7 @@ class ToolsModule(tk.Frame):
         self.unselectAll()
         self.eraser_btn.configure(relief=tk.SUNKEN)
         self.parent.tool = Eraser(self.parent)
+    def setLine(self):
+        self.unselectAll()
+        self.line_btn.configure(relief=tk.SUNKEN)
+        self.parent.tool = Line(self.parent)
