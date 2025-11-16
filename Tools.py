@@ -52,13 +52,34 @@ class Line(Tool):
         super().__init__(parent)
         self.line_start = np.array([0,0])
         self.line_end = np.array([0,0])
+        self.preview_end = np.array([0,0])
     def execute(self, event):
-        pass
+        
+        self.preview_end[0] = event.x
+        self.preview_end[1] = event.y
+        print(f"dragging {self.line_start}, {self.preview_end}")
+        line = self.preview_end - self.line_start
+        magnitude = int(np.linalg.norm(line))
+        
+        
+        for i in range(0, magnitude):
+            inc = i / (magnitude)
+            point = self.line_start * (1 - inc) + self.preview_end * inc
+            point = point.astype(np.uint64)
+            
+            self.parent.setPreviewPixel(point[0], point[1])
+        self.parent.UpdateLayers()
+        self.parent.UpdateDisplay()
+        self.parent.nullifyPreview()
+        
     def drag_start(self, event):
+        self.parent.show_preview = True
         print(f"start at {event.x} , {event.y}")
         self.line_start[0] = event.x
         self.line_start[1] = event.y
     def drag_end(self, event):
+        self.parent.show_preview = False
+        self.parent.nullifyPreview()
         print(f"end at {event.x} , {event.y}")
         self.line_end[0] = event.x
         self.line_end[1] = event.y
@@ -67,7 +88,6 @@ class Line(Tool):
         magnitude = int(np.linalg.norm(line))
         perp_1 = np.array([-line[1], line[0]])/ magnitude
         perp_2 = np.array([line[1], -line[0]])/ magnitude
-        print(magnitude)
         for i in range(0, magnitude):
             inc = i / (magnitude)
             point = self.line_start * (1 - inc) + self.line_end * inc

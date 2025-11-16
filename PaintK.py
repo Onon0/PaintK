@@ -29,6 +29,8 @@ class MainWindow:
 
         ''' grid variables '''
         self.grid = Layer(self.width, self.height)
+        self.preview = Layer(self.width, self.height)
+        self.show_preview = False
         self.gridSize = 10
         self.bShowGrid = BooleanVar(value=False)
         self.showGrid()
@@ -50,7 +52,9 @@ class MainWindow:
         self.MiddleContainer.pack(side=TOP)
         self.BottomContainer.pack(side=TOP)
         
-    
+    def nullifyPreview(self):
+        self.preview.frame_pointer.alpha[:, :] = 0
+        
     def UpdateLayers(self):
         self.display = self.base
         
@@ -67,6 +71,8 @@ class MainWindow:
             self.display = self.layers[i].frame_pointer.normal(self.display)
         if self.bShowGrid.get():
             self.display = self.grid.normal(self.display)
+        if self.show_preview:
+            self.display = self.preview.normal(self.display)
     def UpdateDisplay(self):
         img = Image.fromarray(self.display)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -82,6 +88,8 @@ class MainWindow:
         
         if self.bShowGrid.get():
             ret = self.grid.normal_pixel(ret,x,y)
+        if self.show_preview:
+            ret = self.preview.normal_pixel(ret, x,y)
         self.display[x][y] = ret
         
     def showGrid(self):
@@ -160,6 +168,7 @@ class MainWindow:
         self.canvas.configure(width=self.width, height=self.height)
         self.grid = Layer(self.width, self.height)
         self.layers = new_settings.layers
+        self.preview = Layer(self.width, self.height)
         self.create_base()
         self.UpdateLayers()
         self.UpdateDisplay()
@@ -174,12 +183,33 @@ class MainWindow:
         grid_y = y // self.gridSize
         grid_area = (grid_x * self.gridSize, grid_y * self.gridSize)
 
-        self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
-        self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        if self.show_preview:
+            self.preview.frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
+            self.preview.frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        else:
+            self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
+            self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        
+
         for i in range(self.gridSize):
             for  j in range(self.gridSize):
                 
                 self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
+    def setPreviewPixel(self, x, y):
+        grid_x = x // self.gridSize
+        grid_y = y // self.gridSize
+        grid_area = (grid_x * self.gridSize, grid_y * self.gridSize)
+
+        
+        self.preview.frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = [255,0,0]#self.ColorPickerModule.currentColor
+        self.preview.frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+        
+
+        for i in range(self.gridSize):
+            for  j in range(self.gridSize):
+                
+                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
+    
     def paint(self, event):
         if len(self.layers) == 0: return
         if not self.layers[self.currentLayerIndex].frame_exist(self.currentFrameIndex):
