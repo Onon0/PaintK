@@ -96,7 +96,10 @@ class ColorPalette(tk.Frame):
         self.green.pack()
         self.blue = tk.Scale(self , label="blue" , from_=0, to=255, orient=tk.HORIZONTAL, command=self.updateCanvas)
         self.blue.pack()
-
+        
+        self.opacity = tk.Scale(self , label="opacity" , from_=0, to=255, orient=tk.HORIZONTAL, command=self.updateCanvas)
+        self.opacity.pack()
+        self.opacity.set(255)
         self.canvas_color = np.ones((100,100, 3), dtype = np.uint8 )
         img = Image.fromarray(self.canvas_color)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -106,6 +109,7 @@ class ColorPalette(tk.Frame):
     def updateCanvas(self, value):
         #[1,1,1] * current color
         self.canvas_color =np.multiply( np.ones((100,100, 3) ), np.array([self.red.get(),self.green.get(),self.blue.get()]))
+        self.opacity_value = self.opacity.get()
         img = Image.fromarray(self.canvas_color.astype(np.uint8))
         self.photo_img = ImageTk.PhotoImage(image=img)
         self.canvas.itemconfig(self.image_element, image = self.photo_img)
@@ -260,7 +264,8 @@ class ToolsModule(tk.Frame):
         self.brush_btn = self.addToolButton(self.setBrush, is_default=True)
         self.eraser_btn =self.addToolButton(self.setEraser, grid_at=(1,0))
         self.line_btn = self.addToolButton(self.setLine, grid_at=(2,0))
-
+        self.box_btn = self.addToolButton(self.setBox, grid_at=(3,0))
+        self.circle_btn = self.addToolButton(self.setCircle, grid_at=(4,0))
     def addToolButton(self,command, grid_at = (0,0), is_default =False):
         
 
@@ -285,3 +290,11 @@ class ToolsModule(tk.Frame):
         self.unselectAll()
         self.line_btn.configure(relief=tk.SUNKEN)
         self.parent.tool = Line(self.parent)
+    def setBox(self):
+        self.unselectAll()
+        self.box_btn.configure(relief=tk.SUNKEN)
+        self.parent.tool = Box(self.parent)
+    def setCircle(self):
+        self.unselectAll()
+        self.circle_btn.configure(relief=tk.SUNKEN)
+        self.parent.tool = Circle(self.parent)

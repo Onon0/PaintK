@@ -91,7 +91,17 @@ class MainWindow:
         if self.show_preview:
             ret = self.preview.normal_pixel(ret, x,y)
         self.display[x][y] = ret
-        
+
+    def CalculateArea(self, start, stop):
+        top_left = (min(start[0], stop[0]), min(start[1], stop[1]))
+        bottom_right = (max(start[0], stop[0]), max(start[1], stop[1]))
+        ret = self.base[top_left[0]: bottom_right[0], top_left[1]: bottom_right[1]]
+        for layer in self.layers:
+            ret = layer.normal_area(ret, top_left, bottom_right)
+        if self.show_preview:
+            ret = self.preview.normal_area(ret, top_left, bottom_right)
+        self.display[top_left[0]: bottom_right[0], top_left[1]: bottom_right[1]] = ret
+
     def showGrid(self):
         
         for i in range(0, self.height, self.gridSize):
@@ -109,6 +119,8 @@ class MainWindow:
         self.canvasModule = Frame(self.MiddleContainer, width=self.width)
         self.canvas = Canvas(self.canvasModule, height=self.height, width=self.width)
         self.gridToggle = Checkbutton(self.canvasModule, text = "show grid", variable=self.bShowGrid, onvalue=True, offvalue=False, command=self.toggleGrid)
+        self.gridSizeSlide = Scale(self.canvasModule, label = "pixel size",from_=1, to=100, orient=HORIZONTAL, command=self.setGridSize)
+        self.gridSizeSlide.set(self.gridSize)
         self.create_base()
         img = Image.fromarray(self.base)
         self.photo_img = ImageTk.PhotoImage(image=img)
@@ -119,6 +131,7 @@ class MainWindow:
         self.canvas.bind("<ButtonRelease-1>", self.mouse_drag_end)
         self.canvas.pack(side=TOP)
         self.gridToggle.pack(side=TOP)
+        self.gridSizeSlide.pack()
         self.canvasModule.pack(side=LEFT)
 
     def create_base(self):
@@ -161,6 +174,8 @@ class MainWindow:
     def addToolsModule(self, root):
         self.ToolsModule = ToolsModule(root, self, width = 15, height = 5)
         self.ToolsModule.pack(side=TOP)
+    def setGridSize(self, value):
+        self.gridSize = self.gridSizeSlide.get()
     def reset_program(self, new_settings):
         self.width = new_settings.width
         self.height = new_settings.height
@@ -185,30 +200,13 @@ class MainWindow:
 
         if self.show_preview:
             self.preview.frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
-            self.preview.frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+            self.preview.frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.opacity_value
         else:
             self.layers[self.currentLayerIndex].frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.currentColor
-            self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
+            self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = self.ColorPickerModule.opacity_value
         
+        self.CalculateArea((grid_area[1],grid_area[0]),(grid_area[1] + self.gridSize, grid_area[0] + self.gridSize))
 
-        for i in range(self.gridSize):
-            for  j in range(self.gridSize):
-                
-                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
-    def setPreviewPixel(self, x, y):
-        grid_x = x // self.gridSize
-        grid_y = y // self.gridSize
-        grid_area = (grid_x * self.gridSize, grid_y * self.gridSize)
-
-        
-        self.preview.frame_pointer.content[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = [255,0,0]#self.ColorPickerModule.currentColor
-        self.preview.frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 255
-        
-
-        for i in range(self.gridSize):
-            for  j in range(self.gridSize):
-                
-                self.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
     
     def paint(self, event):
         if len(self.layers) == 0: return

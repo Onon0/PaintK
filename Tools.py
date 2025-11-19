@@ -52,35 +52,29 @@ class Line(Tool):
         super().__init__(parent)
         self.line_start = np.array([0,0])
         self.line_end = np.array([0,0])
-        self.preview_end = np.array([0,0])
+        
     def execute(self, event):
         
-        self.preview_end[0] = event.x
-        self.preview_end[1] = event.y
-        print(f"dragging {self.line_start}, {self.preview_end}")
-        line = self.preview_end - self.line_start
-        magnitude = int(np.linalg.norm(line))
-        
-        
-        for i in range(0, magnitude):
-            inc = i / (magnitude)
-            point = self.line_start * (1 - inc) + self.preview_end * inc
-            point = point.astype(np.uint64)
-            
-            self.parent.setPreviewPixel(point[0], point[1])
+        self.draw_line(event)
         self.parent.UpdateLayers()
         self.parent.UpdateDisplay()
         self.parent.nullifyPreview()
         
+        
     def drag_start(self, event):
         self.parent.show_preview = True
-        print(f"start at {event.x} , {event.y}")
+        #print(f"start at {event.x} , {event.y}")
         self.line_start[0] = event.x
         self.line_start[1] = event.y
     def drag_end(self, event):
         self.parent.show_preview = False
         self.parent.nullifyPreview()
-        print(f"end at {event.x} , {event.y}")
+        #print(f"end at {event.x} , {event.y}")
+        self.draw_line(event)
+            
+        self.parent.UpdateDisplay()
+
+    def draw_line(self, event):
         self.line_end[0] = event.x
         self.line_end[1] = event.y
 
@@ -93,33 +87,105 @@ class Line(Tool):
             point = self.line_start * (1 - inc) + self.line_end * inc
             point = point.astype(np.uint64)
             self.parent.setGridPixel(point[0], point[1])
-            
-
-
-        '''
-        x_start = min(self.line_start[0] , self.line_end[0])
-        y_start = min(self.line_start[1] , self.line_end[1])
-
-        x_end = max(self.line_start[0] , self.line_end[0])
-        y_end = max(self.line_start[1] , self.line_end[1])
         
-        line = self.line_end - self.line_start
-        for i in range(x_start, x_end):
-            for j in range(y_start, y_end):
-                vec = np.array([i,j]) - self.line_start
-                #cross = line[0]*vec[1] - line[1]*vec[0]
-                cross = np.cross(line, vec)
-                magnitude = np.linalg.norm(line)
-                #print(cross)
-                if abs(cross)/magnitude < 10:
-                    self.parent.layers[self.parent.currentLayerIndex].frame_pointer.content[j][i] = self.parent.ColorPickerModule.currentColor
-                    self.parent.layers[self.parent.currentLayerIndex].frame_pointer.alpha[j][i] = 255
-                    self.parent.CalculatePixel(j, i)
-        '''
+        
+class Box(Tool):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.line_start = np.array([0,0])
+        self.line_end = np.array([0,0])
+        self.preview_end = np.array([0,0])
+    def execute(self, event):
+        
+        self.preview_end[0] = event.x
+        self.preview_end[1] = event.y
+        
+        y_start = min(self.line_start[0] , self.preview_end[0])
+        x_start = min(self.line_start[1] , self.preview_end[1])
+
+        y_end = max(self.line_start[0] , self.preview_end[0])
+        x_end = max(self.line_start[1] , self.preview_end[1])
+        
+        self.parent.preview.frame_pointer.content[x_start: x_end, y_start: y_end ] = self.parent.ColorPickerModule.currentColor
+        self.parent.preview.frame_pointer.alpha[x_start: x_end, y_start: y_end ] = self.parent.ColorPickerModule.opacity_value
+        #self.parent.CalculateArea((x_start, y_start), (x_end, y_end))
+        
+        
+        self.parent.UpdateLayers()
+        self.parent.UpdateDisplay()
+        self.parent.nullifyPreview()
+        
+        
+    def drag_start(self, event):
+        self.parent.show_preview = True
+        #print(f"start at {event.x} , {event.y}")
+        self.line_start[0] = event.x
+        self.line_start[1] = event.y
+    def drag_end(self, event):
+        self.parent.show_preview = False
+        self.parent.nullifyPreview()
+        #print(f"end at {event.x} , {event.y}")
+        self.line_end[0] = event.x
+        self.line_end[1] = event.y
+
+        y_start = min(self.line_start[0] , self.line_end[0])
+        x_start = min(self.line_start[1] , self.line_end[1])
+
+        y_end = max(self.line_start[0] , self.line_end[0])
+        x_end = max(self.line_start[1] , self.line_end[1])
+        
+        self.parent.layers[self.parent.currentLayerIndex].frame_pointer.content[x_start: x_end, y_start: y_end ] = self.parent.ColorPickerModule.currentColor
+        self.parent.layers[self.parent.currentLayerIndex].frame_pointer.alpha[x_start: x_end, y_start: y_end ] = self.parent.ColorPickerModule.opacity_value
+        self.parent.CalculateArea((x_start, y_start), (x_end, y_end))
+        
         self.parent.UpdateDisplay()
         
+class Circle(Tool):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.line_start = np.array([0,0])
+        self.line_end = np.array([0,0])
+        self.preview_end = np.array([0,0])
+    def execute(self, event):
         
+        self.draw_circle(event)
+        
+        
+        
+        self.parent.UpdateLayers()
+        self.parent.UpdateDisplay()
+        self.parent.nullifyPreview()
+        
+        
+    def drag_start(self, event):
+        self.parent.show_preview = True
+        #print(f"start at {event.x} , {event.y}")
+        self.line_start[0] = event.x
+        self.line_start[1] = event.y
+    def drag_end(self, event):
+        self.parent.show_preview = False
+        self.parent.nullifyPreview()
+        
+        self.draw_circle(event)
+       
+        
+        self.parent.UpdateDisplay()
 
+    def draw_circle(self, event):
+        self.line_end[0] = event.x
+        self.line_end[1] = event.y
+
+        w = abs(self.line_start[1] - self.line_end[1])
+        h = abs(self.line_start[0] - self.line_end[0])
+
+       
+
+        cent_y = (self.line_start[1] + self.line_end[1])//2
+        cent_x = (self.line_start[0] + self.line_end[0])//2
+        for i in range(0,360):
+            y = round(w/2 * math.cos(i) + cent_y)
+            x = round(h/2 * math.sin(i) + cent_x)
+            self.parent.setGridPixel(x, y)
         
     
     

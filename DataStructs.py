@@ -24,6 +24,14 @@ class Layer:
         ret = self.frame_pointer.content[x][y] * self.frame_pointer.alpha[x][y] + base * (255 - self.frame_pointer.alpha[x][y])
         ret = ret/255
         return ret.astype(np.uint8)
+    def normal_area(self, base, top_left, bottom_right):
+        if not self.visible: return base
+        ret = self.frame_pointer.content[top_left[0]: bottom_right[0], top_left[1]: bottom_right[1]] \
+            * self.frame_pointer.alpha[top_left[0]: bottom_right[0], top_left[1]: bottom_right[1],np.newaxis]  \
+            + base\
+            * (255 - self.frame_pointer.alpha[top_left[0]: bottom_right[0], top_left[1]: bottom_right[1], np.newaxis])
+        ret = ret/255
+        return ret.astype(np.uint8)
     def get_header(self):
         return self.__frame_header
     def find_frame(self, f_id):
