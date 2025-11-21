@@ -259,17 +259,28 @@ class ToolsModule(tk.Frame):
         
         
         self.buttons = []
-        self.brush_icon = tk.PhotoImage(file = r'icon.png')
+        self.brush_icon = self.load_icon(path = r'icons/brush_icon.png')
+        self.eraser_icon = self.load_icon(path = r'icons/eraser_icon.png')
+        self.line_icon = self.load_icon(path = r'icons/line_icon.png')
+        self.box_icon = self.load_icon(path = r'icons/box_icon.png')
+        self.circle_icon = self.load_icon(path = r'icons/circle_icon.png')
+        
         # Convert to Tkinter PhotoImage
-        self.brush_btn = self.addToolButton(self.setBrush, is_default=True)
-        self.eraser_btn =self.addToolButton(self.setEraser, grid_at=(1,0))
-        self.line_btn = self.addToolButton(self.setLine, grid_at=(2,0))
-        self.box_btn = self.addToolButton(self.setBox, grid_at=(3,0))
-        self.circle_btn = self.addToolButton(self.setCircle, grid_at=(4,0))
-    def addToolButton(self,command, grid_at = (0,0), is_default =False):
+        self.brush_btn = self.addToolButton(self.setBrush,self.brush_icon, is_default=True)
+        self.eraser_btn =self.addToolButton(self.setEraser, self.eraser_icon, grid_at=(1,0))
+        self.line_btn = self.addToolButton(self.setLine,self.line_icon, grid_at=(2,0))
+        self.box_btn = self.addToolButton(self.setBox,self.box_icon, grid_at=(3,0))
+        self.circle_btn = self.addToolButton(self.setCircle, self.circle_icon, grid_at=(4,0))
+
+    def load_icon(self, path, fit_size = (50,50)):
+        original_image = Image.open(path)
+        resized_image = original_image.resize(fit_size) 
+
+        return ImageTk.PhotoImage(resized_image)
+    def addToolButton(self,command, icon_image, grid_at = (0,0)  ,is_default =False):
         
 
-        btn = tk.Button(self, image= self.brush_icon , width=50, height=50, command=command)
+        btn = tk.Button(self, image= icon_image , width=50, height=50, command=command)
         if is_default:
             btn.configure(relief=tk.SUNKEN)
         btn.grid(column=grid_at[0], row=grid_at[1])

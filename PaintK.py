@@ -207,6 +207,15 @@ class MainWindow:
         
         self.CalculateArea((grid_area[1],grid_area[0]),(grid_area[1] + self.gridSize, grid_area[0] + self.gridSize))
 
+    def eraseGridPixel(self, x, y):
+        grid_x = x // self.gridSize
+        grid_y = y // self.gridSize
+        grid_area = (grid_x * self.gridSize, grid_y * self.gridSize)
+
+        
+        self.layers[self.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + self.gridSize, grid_area[0]: grid_area[0] + self.gridSize] = 0
+        
+        self.CalculateArea((grid_area[1],grid_area[0]),(grid_area[1] + self.gridSize, grid_area[0] + self.gridSize))
     
     def paint(self, event):
         if len(self.layers) == 0: return

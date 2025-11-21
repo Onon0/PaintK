@@ -38,13 +38,7 @@ class Eraser(Tool):
     def __init__(self, parent):
         super().__init__(parent)
     def execute(self, event):
-        grid_area = self.getGridArea(event.x, event.y)
-        grid_size = self.parent.gridSize
-        self.parent.layers[self.parent.currentLayerIndex].frame_pointer.alpha[grid_area[1]: grid_area[1] + grid_size, grid_area[0]: grid_area[0] + grid_size] = 0
-        for i in range(grid_size):
-            for  j in range(grid_size):
-                
-                self.parent.CalculatePixel(grid_area[1] + i, grid_area[0] + j)
+        self.parent.eraseGridPixel(event.x, event.y)
         self.parent.UpdateDisplay()
         
 class Line(Tool):
