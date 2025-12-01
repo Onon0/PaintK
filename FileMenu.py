@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 import pickle
 from DataStructs import ProjectSettings, Layer
@@ -17,6 +18,7 @@ class FileMenu():
         self.file_btn.menu.add_command(label="Open", command=self.open_file)         
         self.file_btn.menu.add_command(label="Save", command=self.save)
         self.file_btn.menu.add_command(label="Export", command=self.export_window)
+        self.file_btn.menu.add_command(label="Export Sequence", command=self.export_sequence)
         self.file_btn.menu.add_command(label="Exit", command=self.on_close)
 
         self.name = "untitled"
@@ -25,6 +27,8 @@ class FileMenu():
         self.name_variable = tk.StringVar()
         self.width_variable = tk.IntVar()
         self.height_variable = tk.IntVar()
+
+        
     def new_project(self):
         self.new_project_window = tk.Toplevel(self.root)
         self.new_project_window.title("New Project")
@@ -71,6 +75,26 @@ class FileMenu():
         )
         if filepath:
             self.export(filepath)
+    
+    def export_sequence(self):
+        filepath = tk.filedialog.asksaveasfilename(
+            title="Select a file",
+            initialdir="/",  # Start in the root directory
+            defaultextension=".png",
+            filetypes=[("png", "*.png"), ("jpeg, jpg", "*.jpg")]
+        )
+        if filepath:
+            start = self.parent.AnimationModule.start_frame.get()
+            end = self.parent.AnimationModule.end_frame.get()
+            directory, filename = os.path.split(filepath)
+            for i in range(start, end + 1):
+                
+                seq_path = directory + "/" + filename.split('.')[0] + str(i) + '.'+ filename.split('.')[1]
+                print(seq_path)
+                self.parent.AnimationModule.LoadFrame(i)
+                self.export(filepath=seq_path)
+                
+
     def export(self, filepath):
         display = self.parent.layers[0].frame_pointer.content
         alpha = self.parent.layers[0].frame_pointer.alpha
@@ -89,6 +113,23 @@ class FileMenu():
         final_image = Image.fromarray(result, 'RGBA')
         final_image.save(filepath)
 
+    def export_frame(self, filepath, frame_number):
+        display = self.parent.layers[0].find_frame(frame_number).content
+        alpha = self.parent.layers[0].find_frame(frame_number).alpha
+        for i in range(1,len(self.parent.layers)):
+            if self.parent.layers[i].visible:
+                display = self.parent.layers[i].find_frame(frame_number).normal(display)
+                alpha = alpha + self.parent.layers[i].find_frame(frame_number).alpha
+        
+        alpha = np.clip(alpha, 0, 255)
+        alpha = alpha.astype(np.uint8)
+        result = np.dstack([display, alpha[:, :, np.newaxis]])
+        result = result.reshape(self.parent.height, self.parent.width, 4)
+        result = result.astype(np.uint8)
+        #print(result.shape)
+        
+        final_image = Image.fromarray(result, 'RGBA')
+        final_image.save(filepath)
     def save(self):
         if self.project_path != "":
             file = open(self.project_path,'wb')
@@ -110,7 +151,8 @@ class FileMenu():
             ps.layers = self.parent.layers.copy()
             file.write(pickle.dumps(ps))
             file.close()
-
+            self.project_path = filepath
+            self.parent.root.title(filepath.split('/')[-1].split('.')[0])
     
     def open_file(self):
         filepath = tk.filedialog.askopenfilename(
@@ -125,6 +167,7 @@ class FileMenu():
             dataPickle = file.read()
             file.close()
             ps = pickle.loads(dataPickle)
+            ps.project_name = filepath.split('/')[-1].split('.')[0]
             self.parent.reset_program(ps)
             
     def on_close(self):

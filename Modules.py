@@ -14,6 +14,8 @@ class AnimationModule(tk.Frame):
         self.isPlaying = False
         self.frameContainer = ctk.CTkScrollableFrame(self, width = 500, height= 100, orientation="horizontal")
         self.keyFrameModules = []
+        self.start_frame = tk.IntVar()
+        self.end_frame = tk.IntVar()
         for i in range(250):
             #tk.Button(self.frameContainer, width=5, height=20, command= lambda idx = i: self.LoadFrame(idx)).grid(column=i,row= 0)
             kfm = KeyFrameModule(self.frameContainer, i, self)
@@ -21,10 +23,16 @@ class AnimationModule(tk.Frame):
             self.keyFrameModules.append(kfm)
         self.controlContainer = tk.Frame(self)
         
-        self.playBtn = tk.Button(self.controlContainer, width= 5, command= self.startAnimationThread).pack(side=tk.LEFT)
-        #self.pauseBtn = tk.Button(self.controlContainer, width= 5, command= self.stopAnimation).pack(side=tk.LEFT)
-        self.frameContainer.pack(side = tk.TOP)
+        self.playBtn = tk.Button(self.controlContainer, width= 5, command= self.startAnimationThread)
+        self.playBtn.pack(side=tk.LEFT)
+        start_frame_input = tk.Spinbox(self.controlContainer, from_ = 0, to = 250, width=10, textvariable=self.start_frame, command=self.animationIntervalChanged)
+        end_frame_input = tk.Spinbox(self.controlContainer, from_ = 0, to = 250, width=10, textvariable=self.end_frame, command=self.animationIntervalChanged)
+        self.end_frame.set(10)
+        start_frame_input.pack(side=tk.LEFT)
+        end_frame_input.pack(side=tk.LEFT)
         self.controlContainer.pack(side = tk.TOP)
+        self.frameContainer.pack(side = tk.TOP)
+        
     def LoadFrame(self, i):
         #print("current frame is "+ str(i))
         self.parent.currentFrameIndex = i
@@ -41,17 +49,19 @@ class AnimationModule(tk.Frame):
             self.isPlaying = True
             self.anim_thread = threading.Thread(target=self.playAnimation)
             self.anim_thread.start()
-        
+    def animationIntervalChanged(self):
+        if self.end_frame.get() <= self.start_frame.get():
+            self.end_frame.set(self.start_frame.get() + 1)    
     def playAnimation(self):
-        i = 0
+        i = self.start_frame.get()
         while self.isPlaying:
             #print("playing" + str(i))
             self.keyFrameModules[self.parent.currentFrameIndex].setSelected(False)
             self.LoadFrame(i)
             self.keyFrameModules[i].setSelected(True)
             i+=1
-            if i > 10:
-                i = 0
+            if i > self.end_frame.get():
+                i = self.start_frame.get()
 
             time.sleep(1/24)
         print("Animation loop stopped")
