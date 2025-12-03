@@ -18,7 +18,7 @@ class MainWindow:
         root.title("untitled")
         # Set geometry (widthxheight)
         root.geometry('1000x600')
-
+        root.iconbitmap('icons/fox.ico')
         self.MiddleContainer = Frame(root)
         self.BottomContainer = Frame(root)
 

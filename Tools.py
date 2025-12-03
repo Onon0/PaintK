@@ -169,16 +169,25 @@ class Circle(Tool):
         self.line_end[0] = event.x
         self.line_end[1] = event.y
 
-        w = abs(self.line_start[1] - self.line_end[1])
-        h = abs(self.line_start[0] - self.line_end[0])
+        grid_Size = self.parent.gridSize
+
+        w = abs(self.line_start[1] - self.line_end[1])//grid_Size
+        h = abs(self.line_start[0] - self.line_end[0])//grid_Size
 
        
 
         cent_y = (self.line_start[1] + self.line_end[1])//2
         cent_x = (self.line_start[0] + self.line_end[0])//2
+
+        cent_y = cent_y//grid_Size
+        cent_x = cent_x//grid_Size
+        
+
         for i in range(0,360):
             y = round(w/2 * math.cos(i) + cent_y)
             x = round(h/2 * math.sin(i) + cent_x)
+            y = y * grid_Size
+            x = x * grid_Size
             self.parent.setGridPixel(x, y)
         
     
